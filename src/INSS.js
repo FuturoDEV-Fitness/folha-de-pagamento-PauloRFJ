@@ -22,6 +22,10 @@ input.question("Qual o seu salario bruto no último mês? ", (salarioBruto) => {
         inss = salarioBruto * 0.14;
     }
 
+    if (inss > 908.85) {
+        inss = 908.85;
+    }
+
     const salarioLiquido = salarioBruto - inss;
 
     console.log("O valor do INSS é: " + inss.toFixed(2) + " reais");
