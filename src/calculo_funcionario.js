@@ -1,4 +1,7 @@
 const readline = require('readline'); 
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 const input = readline.createInterface(
     process.stdin,
@@ -90,8 +93,44 @@ input.question("Qual o seu nome? ", (nome) => {
             console.log("Vale Transporte: R$ " + resultado.valeTransporte);
             console.log("Vale Refeição: R$ " + resultado.valeRefeicao);
             console.log("Salário Líquido: R$ " + resultado.salarioLiquido);
-        
-            input.close();
+
+            input.question("Deseja gerar um PDF com a folha de pagamento? (sim/não) ", (resposta) => {
+                if (resposta.toLowerCase() === 'sim') {
+                    gerarPDF(funcionario, CPF_funcionario, salarioBruto, resultado);
+                }
+                input.close();
+            });
         });
     });
 });
+
+function gerarPDF(nome, cpf, salarioBruto, resultado) {
+    const doc = new PDFDocument();
+    const dir = './folhas_pagamento';
+    const fileName = `${nome.replace(/ /g, '_')}_folha_pagamento.pdf`;
+    const filePath = path.join(dir, fileName);
+
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+
+    doc.pipe(fs.createWriteStream(filePath));
+
+    doc.fontSize(20).text('--- Folha de Pagamento ---', {align: 'center'});
+    doc.fontSize(14).text(`Data da Geração: ${new Date().toLocaleDateString()}`);
+    doc.text(`Nome: ${nome}`)
+    doc.text(`CPF: ${cpf}`);
+    doc.text("--- ---")
+    doc.text(`Salário bruto: R$ ${salarioBruto.toFixed(2)}`);
+    doc.text("--- ---")
+    doc.text(`INSS: R$ ${resultado.inss}`);
+    doc.text(`Imposto de Renda: R$ ${resultado.impostoDeRenda}`);
+    doc.text(`Vale Transporte: R$ ${resultado.valeTransporte}`);
+    doc.text(`Vale Refeição: R$ ${resultado.valeRefeicao}`);
+    doc.text("--- ---")
+    doc.text(`Salário Líquido: R$ ${resultado.salarioLiquido}`);
+
+    doc.end();
+    
+    console.log(`PDF gerado com sucesso em: ${filePath}`);
+}
